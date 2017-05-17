@@ -12,6 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+# Author: Sijiang Du, May, 2017
+# This program runs on MAC OS. It is for Kaggle Digit Recognizer competition.
+#  
+# Input: train.csv, test.csv. 
+# 
+# Output: "submission_sijiangdu.csv" in folder /tmp/tensorflow/mnist_rnn/input_data/
+# Generated temparary files are at /tmp/tensorflow/mnist_rnn/
+#
+# Kaggle.com provides its own MNIST "train.csv" and "test.csv".
+# The program here uses tensorflow input pipe line to stream line the training and testing data from the cvs files.
+# There are two flags in the program "train_by_mnist_lib" and "test_by_mnist_lib" set those to "True" to use moist_data as inputs.
+# Otherwise, user need to download the cvs file from Kaggle website for Digit Recognizer: https://www.kaggle.com/c/digit-recognizer/data 
 
 import tensorflow as tf
 import numpy as np
@@ -46,7 +58,7 @@ epochs = 10
 training_iters = train_size * epochs
 batch_size = 100
 sample_size = 28*28
-n_cell= 400
+n_cell= 500
 n_steps = 14    #4 # time steps
 n_classes = 10      # MNIST classes (0-9 digits)
   
@@ -109,9 +121,9 @@ def read_mnist_csv(filename_queue):
   label = tf.stack([cols[0]])
   return features, label
 
-def input_pipeline(filenames, batch_size, num_epochs=None):
+def input_pipeline(filenames, batch_size, num_epochs=None, shuffle=True):
   filename_queue = tf.train.string_input_producer(
-      filenames, num_epochs=num_epochs, shuffle=True)
+      filenames, num_epochs=num_epochs, shuffle=shuffle)
   features, label = read_mnist_csv(filename_queue)
   # min_after_dequeue defines how big a buffer we will randomly sample
   #   from -- bigger means better shuffling but slower start up and more
@@ -121,9 +133,14 @@ def input_pipeline(filenames, batch_size, num_epochs=None):
   #   min_after_dequeue + (num_threads + a small safety margin) * batch_size
   min_after_dequeue = 10000
   capacity = min_after_dequeue + 3 * batch_size
-  feature_batch, label_batch = tf.train.shuffle_batch(
-      [features, label], batch_size=batch_size, capacity=capacity,
-      min_after_dequeue=min_after_dequeue)
+  if shuffle == True:
+      feature_batch, label_batch = tf.train.shuffle_batch(
+          [features, label], batch_size=batch_size, capacity=capacity,
+          min_after_dequeue=min_after_dequeue)
+  else:
+      feature_batch, label_batch = tf.train.batch(
+          [features, label], batch_size=batch_size, capacity=capacity
+          )
   return feature_batch, label_batch
 
 # display image
@@ -205,7 +222,7 @@ def train():
     with tf.name_scope('input_images'):
       example_batch_train, label_batch_train = input_pipeline(tf.constant([FLAGS.data_dir+train_file_name]), batch_size)
       example_batch_test, label_batch_test = input_pipeline(tf.constant([FLAGS.data_dir+test_file_name]), batch_size)
-      example_batch_submit, label_batch_submit = input_pipeline(tf.constant([FLAGS.data_dir+submit_test_file_name]), batch_size,1)
+      example_batch_submit, label_batch_submit = input_pipeline(tf.constant([FLAGS.data_dir+submit_test_file_name]), batch_size,num_epochs=1,shuffle=False)
 
     train_by_mnist_lib = False
     test_by_mnist_lib = True
@@ -355,7 +372,7 @@ def main(_):
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
-  parser.add_argument('--learning_rate', type=float, default=0.004,
+  parser.add_argument('--learning_rate', type=float, default=0.001,
                       help='Initial learning rate')
   parser.add_argument('--forget_bias', type=float, default= 0.9,
                       help='forget bias for training')
