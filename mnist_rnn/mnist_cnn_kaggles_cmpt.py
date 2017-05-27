@@ -243,21 +243,21 @@ def CNN_Wrapper(X, num_classes, n_hidden_layers, init_size=32, drop_out = 0.9, n
       size = size*2
       print('CNN layer %s: '%(i+1) + str(cur_layer) )
 
-      height = width
-      W = weight_variable([width*height*size, 1024])
-      b = bias_variable([1024])
-      #flat the layer: [n_samples, 7, 7, size] ->> [n_samples, 7*7*size]
-      cur_layer = tf.reshape(cur_layer, [-1, width*height*size])
-      cur_layer = tf.nn.relu(tf.matmul(cur_layer, W) + b)
-      cur_layer = tf.nn.dropout(cur_layer, drop_out)
-      print('CNN output flat layer:'+str(cur_layer))
-      
-      # output results#
-      W = weight_variable([1024, num_classes])
-      b = bias_variable([num_classes])
-      results = tf.matmul(cur_layer, W) + b
-      results = tf.nn.l2_normalize(results,0)
-      return results
+    height = width
+    W = weight_variable([width*height*size, 1024])
+    b = bias_variable([1024])
+    #flat the layer: [n_samples, 7, 7, size] ->> [n_samples, 7*7*size]
+    cur_layer = tf.reshape(cur_layer, [-1, width*height*size])
+    cur_layer = tf.nn.relu(tf.matmul(cur_layer, W) + b)
+    cur_layer = tf.nn.dropout(cur_layer, drop_out)
+    print('CNN output flat layer:'+str(cur_layer))
+
+    # output results#
+    W = weight_variable([1024, num_classes])
+    b = bias_variable([num_classes])
+    results = tf.matmul(cur_layer, W) + b
+    results = tf.nn.l2_normalize(results,0)
+    return results
  
   
 def train():
@@ -268,7 +268,7 @@ def train():
     if not os.path.exists(FLAGS.data_dir+submit_test_file_name):
       csv_test_csv_file_change(test_csv_file_name, submit_test_file_name)
       
-    pred  = CNN_Wrapper(x, n_classes, 2, init_size=32, drop_out = FLAGS.dropout, name='Conv_2_layer');
+    pred  = CNN_Wrapper(x, n_classes, 4, init_size=32, drop_out = FLAGS.dropout, name='Conv_2_layer');
 
     with tf.name_scope('Train'):
       cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=pred, labels=y))
