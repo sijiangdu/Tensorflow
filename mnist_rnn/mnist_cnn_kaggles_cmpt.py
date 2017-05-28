@@ -69,7 +69,7 @@ batch_size = 100
 img_width = 28
 img_height = 28
 sample_size = img_width*img_height
-n_conv = 4
+n_conv = 6
 
 n_classes = 10      # MNIST classes (0-9 digits)
   
@@ -268,7 +268,7 @@ def train():
     if not os.path.exists(FLAGS.data_dir+submit_test_file_name):
       csv_test_csv_file_change(test_csv_file_name, submit_test_file_name)
       
-    pred  = CNN_Wrapper(x, n_classes, 4, init_size=32, drop_out = FLAGS.dropout, name='Conv_2_layer');
+    pred  = CNN_Wrapper(x, n_classes, n_conv, init_size=32, drop_out = FLAGS.dropout, name='Conv_2_layer');
 
     with tf.name_scope('Train'):
       cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=pred, labels=y))
